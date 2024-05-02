@@ -1,5 +1,8 @@
 @echo off
 
+:: Set the console color to green text on black background
+color 0A
+
 :: Check if WinRAR is installed
 if not exist "C:\Program Files\WinRAR\" (
     echo WinRAR Not installed!
@@ -27,33 +30,17 @@ if not exist "%wordlist%" (
     exit /b
 )
 
-:: Determine the total number of passwords in the wordlist efficiently
-for /f "tokens=*" %%a in ('type "%wordlist%" ^| find /v /c ""') do (
-    set /a "totalPasswords=%%a"
-)
-
-:: Initialize variables
-set /a "tried=0"
-set /a "found=0"
-set /a "updateFrequency=10"
-
 :: Process each word in the wordlist
-for /f "tokens=*" %%a in ('type "%wordlist%"') do (
+for /f "tokens=*" %%a in (%wordlist%) do (
     set "pass=%%a"
     call :attempt
-    set /a "tried+=1"
-    if %tried% mod %updateFrequency% equ 0 (
-        echo Progress: [%%%tried%%]%%totalPasswords% | findstr /C:"100%" >nul && (
-            echo Password Found: %pass%
-            pause
-            exit /b
-        )
-    )
 )
 
 :: Inform the user if no password was found
 if %errorlevel% NEQ 0 (
     echo Shitty wordlist, no password found.
+) else (
+    echo Password Found: %pass%
 )
 pause
 exit /b
@@ -62,7 +49,5 @@ exit /b
 "C:\Program Files\WinRAR\WinRAR.exe" x -p%pass% "%archive%" -o"cracked" -y >nul 2>&1
 echo Attempting %pass%
 if /I %errorlevel% EQU 0 (
-    set /a "found+=1"
-    echo Password Found: %pass%
     exit /b
 )
